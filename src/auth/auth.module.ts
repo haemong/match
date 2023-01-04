@@ -7,14 +7,14 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as dotenv from 'dotenv';
-import { JwtStrategy } from './jwt/jwt-strategy';
 import { User } from './entities/user.entity';
+import { UserRepositoty } from './auth.repository';
 
 dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserRepositoty]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -34,8 +34,8 @@ dotenv.config();
       provide: APP_PIPE,
       useClass: ValidationPipe,
     },
-    JwtStrategy,
+    UserRepositoty,
   ],
-  exports: [JwtStrategy, PassportModule],
+  exports: [PassportModule, AuthService],
 })
 export class AuthModule {}
