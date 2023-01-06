@@ -21,13 +21,12 @@ import { PostingDto } from './dto/posting.dto';
 import { GetPostingByTagIdDto } from './dto/getPostingByTagId.dto';
 import { Posting } from './entities/posting.entity';
 import { PostService } from './post.service';
-import { bool } from 'aws-sdk/clients/signer';
 import { successBoolean } from 'src/common/utils/successResponse';
 
 @Controller('posting')
 export class PostController {
   constructor(private readonly postService: PostService) {}
-
+  //! get 전체 orderBy 없을경우 예외처리 필요
   @Get('/all')
   async getAllPosting(
     @CheckUser() user: User,

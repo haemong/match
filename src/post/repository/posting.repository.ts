@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Posting } from '../entities/posting.entity';
 import { PostingLike } from '../entities/postingLike.entity';
+import { UserComment } from 'src/comments/entities/user_comment.entity';
 
 @Injectable()
 export class PostingRepository {
@@ -18,6 +19,8 @@ export class PostingRepository {
       .leftJoin('posting.user', 'user')
       .leftJoin('posting.tags', 'tag')
       .leftJoin('posting.postingImage', 'postingImage')
+      .leftJoin('posting.comment', 'comment')
+      .leftJoin('comment.reply', 'reply')
       .select([
         'posting.id',
         'posting.title',
@@ -29,10 +32,18 @@ export class PostingRepository {
         'user.username',
         'tag',
         'postingImage',
+        'comment.id',
+        'comment.description',
+        'reply.id',
+        'reply.description',
       ])
       .loadRelationCountAndMap(
         'posting.postingLikesCount',
         'posting.postingLikes',
+      )
+      .loadRelationCountAndMap(
+        'comment.commentLikesCount',
+        'comment.userComment',
       )
       .addSelect((subQuery) => {
         return subQuery
@@ -40,6 +51,12 @@ export class PostingRepository {
           .from(PostingLike, 'postinglikes')
           .where('postinglikes.posting.id = posting.id');
       }, 'count');
+    // .addSelect((subquery) => {
+    //   return subquery
+    //     .select('COUNT(commentlikes.user)', 'commentLikeCount')
+    //     .from(UserComment, 'commentlikes')
+    //     .where('commentlikes.user.id=user.id');
+    // }, 'commentLikeCount');
 
     return postingInfo;
   }
@@ -59,6 +76,14 @@ export class PostingRepository {
       .leftJoinAndSelect('posting.postingLikes', 'likes', 'likes.user = :id', {
         id: userId,
       })
+      .leftJoinAndSelect(
+        'comment.userComment',
+        'commentLikes!!!',
+        'likes.user=:id',
+        {
+          id: userId,
+        },
+      )
       .orderBy({ [orderFiltering]: 'DESC' })
       .getMany();
   }
