@@ -16,6 +16,7 @@ export const typeORMConfig: TypeOrmModuleAsyncOptions = {
     database: configService.get('DB_DATABASE'),
     entities: ['dist/**/entities/*{.js,.ts}'],
     synchronize: true,
+    logging: false,
   }),
   dataSourceFactory: async (options) => {
     const dataSource = await new DataSource(options).initialize();
