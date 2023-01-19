@@ -53,7 +53,6 @@ export class UserRepositoty {
   async checkUserId(userId) {
     return await this.userRepository
       .createQueryBuilder()
-      .select()
       .where({ id: userId })
       .getExists();
   }
