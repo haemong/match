@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Req,
@@ -14,6 +15,7 @@ import { ReplyRequestDto } from './DTO/replies.request.dto';
 import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
 import { GetUser } from '../auth/decorator/get_user.decorator';
 import { ReplyUpdateRequestDto } from './DTO/replies.update.request.dto';
+import { User } from 'src/auth/entities/user.entity';
 
 @Controller('replies')
 export class RepliesController {
@@ -22,11 +24,10 @@ export class RepliesController {
   @UseGuards(JwtAuthGuard)
   @Post('create')
   async setReply(
-    @Req() request: Request,
     @GetUser() user: { id: number; email: string },
     @Body() body: ReplyRequestDto,
   ): Promise<unknown> {
-    return this.repliesService.setReply(request, user, body);
+    return this.repliesService.setReply(user, body);
   }
 
   @Get('/:commentId')
@@ -48,5 +49,13 @@ export class RepliesController {
   @Delete('delete/:replyId')
   async deleteReply(@Param('replyId') param: number): Promise<unknown> {
     return await this.repliesService.deleteReply(param);
+  }
+
+  @Post('like/:id')
+  async likeReply(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) replyId: number,
+  ) {
+    return await this.repliesService.likeReply(user, replyId);
   }
 }

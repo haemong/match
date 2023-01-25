@@ -26,10 +26,15 @@ export class RepliesRepository {
     return isExistUser;
   };
 
-  createReply = async (description: string, comment: Comment | number) => {
+  createReply = async (
+    description: string,
+    comment: Comment | number,
+    userId,
+  ) => {
     const createReply = this.repliesRepository.create({
       description,
       comment,
+      user: userId,
     });
 
     await this.repliesRepository.save(createReply);
@@ -42,7 +47,6 @@ export class RepliesRepository {
   getReply = async (comment) => {
     return this.repliesRepository
       .createQueryBuilder()
-      .leftJoinAndSelect('Reply.replyImage', 'ReplyImage')
       .where({ comment })
       .getMany();
   };

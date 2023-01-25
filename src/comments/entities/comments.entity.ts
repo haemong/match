@@ -14,6 +14,8 @@ import {
 import { UserComment } from './user_comment.entity';
 import { Reply } from '../../replies/entities/replies.enetity';
 import { Posting } from 'src/post/entities/posting.entity';
+import { UserReply } from '../../replies/entities/user_replies.entitiy';
+import { User } from 'src/auth/entities/user.entity';
 
 @Entity({ name: 'comments' })
 export class Comment extends BaseEntity {
@@ -44,9 +46,15 @@ export class Comment extends BaseEntity {
   @OneToMany(() => UserComment, (userComment) => userComment.comment, {
     cascade: true,
   })
-  @JoinColumn()
   userComment: UserComment[];
 
   @OneToMany(() => Reply, (reply) => reply.comment, { cascade: true })
   reply: Reply[];
+
+  @ManyToOne(() => User, (user) => user.id, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

@@ -2,32 +2,28 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { CommentRepository } from './comment.repository/comments.repository';
 import { CommentRequesto } from './DTO/comments.request.dto';
 import { UserCommentRepository } from './comment.repository/userComment.repository';
+import { UserRepositoty } from '../auth/auth.repository';
+import { CommentsResponseDto } from './DTO/comments.response.dto';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private commentRepository: CommentRepository,
     private userCommentRepository: UserCommentRepository,
+    private userRepository: UserRepositoty,
   ) {}
-
   async createComment(
     user: { id: number; email: string },
     body: CommentRequesto,
   ): Promise<unknown> {
-    //! 파일업로드중 실패시 트랜잭션 구현 필요
-
     const { description, post } = body;
     const userId = user.id;
 
     const userEmail = user.email;
 
-    const getExistByEmail = await this.commentRepository.getExistByEmail(
-      userEmail,
-    );
+    const getExistByEmail = await this.userRepository.getEmail(userEmail);
 
-    const getExistByUserId = await this.commentRepository.getExistByUserId(
-      userId,
-    );
+    const getExistByUserId = await this.userRepository.checkUserId(userId);
 
     if (!getExistByUserId) {
       new HttpException('토큰이 이상해요~ userId', 400);
@@ -37,14 +33,15 @@ export class CommentsService {
       new HttpException('토큰이 이상해요~ email', 400);
     }
 
-    return this.commentRepository.create(description, post);
+    return this.commentRepository.create(description, post, userId);
   }
 
-  async getComment(param: number): Promise<object[]> {
+  async getComment(param: number): Promise<CommentsResponseDto[]> {
     if (!param) {
       throw new HttpException('path parameter 신경써주세요 숫자로~', 400);
     }
-    return [{}];
+
+    return await this.commentRepository.getCommentByPostId(param);
     //! get 다시 해야댐 post랑 합쳐서
   }
 

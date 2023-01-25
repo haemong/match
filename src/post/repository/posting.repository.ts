@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Posting } from '../entities/posting.entity';
 import { PostingLike } from '../entities/postingLike.entity';
-import { UserComment } from 'src/comments/entities/user_comment.entity';
+import { UserComment } from '../../comments/entities/user_comment.entity';
+import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class PostingRepository {
@@ -32,10 +33,11 @@ export class PostingRepository {
         'user.username',
         'tag',
         'postingImage',
-        'comment.id',
-        'comment.description',
-        'reply.id',
-        'reply.description',
+        // 'comment.id',
+        // 'comment.description',
+        // 'username',
+        // 'reply.id',
+        // 'reply.description',
       ])
       .loadRelationCountAndMap(
         'posting.postingLikesCount',
@@ -45,18 +47,14 @@ export class PostingRepository {
         'comment.commentLikesCount',
         'comment.userComment',
       )
+      .loadRelationCountAndMap('reply.replyLikesCount', 'reply.userReply')
+      .loadRelationCountAndMap('posting.commentCount', 'posting.comment')
       .addSelect((subQuery) => {
         return subQuery
           .select('COUNT(postinglikes.posting)', 'likecount')
           .from(PostingLike, 'postinglikes')
           .where('postinglikes.posting.id = posting.id');
       }, 'count');
-    // .addSelect((subquery) => {
-    //   return subquery
-    //     .select('COUNT(commentlikes.user)', 'commentLikeCount')
-    //     .from(UserComment, 'commentlikes')
-    //     .where('commentlikes.user.id=user.id');
-    // }, 'commentLikeCount');
 
     return postingInfo;
   }
@@ -78,11 +76,15 @@ export class PostingRepository {
       })
       .leftJoinAndSelect(
         'comment.userComment',
-        'commentLikes!!!',
-        'likes.user=:id',
-        {
-          id: userId,
-        },
+        'commentLikes',
+        'commentLikes.user = :id',
+        { id: userId },
+      )
+      .leftJoinAndSelect(
+        'reply.userReply',
+        'replyLikes',
+        'replyLikes.user = :id',
+        { id: userId },
       )
       .orderBy({ [orderFiltering]: 'DESC' })
       .getMany();

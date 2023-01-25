@@ -15,6 +15,10 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
+import { Chatting } from 'src/chats/entities/chats.entitiy';
+import { UserReply } from '../../replies/entities/user_replies.entitiy';
+import { Comment } from 'src/comments/entities/comments.entity';
+import { Reply } from 'src/replies/entities/replies.enetity';
 
 @Entity({ schema: 'match', name: 'users' })
 @Unique(['email', 'nickname'])
@@ -90,4 +94,17 @@ export class User extends BaseEntity {
   @OneToMany(() => UserComment, (userComment) => userComment.user)
   @JoinColumn()
   userComment: UserComment[];
+
+  @OneToMany(() => Chatting, (chatting) => chatting.user, { cascade: true })
+  @JoinColumn()
+  chatting: Chatting[];
+
+  @OneToMany(() => UserReply, (userReply) => userReply.reply, { cascade: true })
+  userReply: UserReply;
+
+  @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
+  comment: Comment[];
+
+  @OneToMany(() => Reply, (reply) => reply.user, { cascade: true })
+  reply: Reply[];
 }

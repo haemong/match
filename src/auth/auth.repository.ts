@@ -56,4 +56,12 @@ export class UserRepositoty {
       .where({ id: userId })
       .getExists();
   }
+
+  async getNicknameById(userId: number) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .select()
+      .where({ id: userId })
+      .getOne();
+  }
 }

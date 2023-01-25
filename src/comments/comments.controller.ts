@@ -16,6 +16,7 @@ import { CommentRequesto } from './DTO/comments.request.dto';
 import { GetUser } from '../auth/decorator/get_user.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { User } from 'src/auth/entities/user.entity';
+import { CommentsResponseDto } from './DTO/comments.response.dto';
 
 @Controller('comments')
 export class CommentsController {
@@ -31,7 +32,7 @@ export class CommentsController {
   }
 
   @Get(':postId')
-  getComment(@Param('postId') param: number): Promise<object[]> {
+  getComment(@Param('postId') param: number): Promise<CommentsResponseDto[]> {
     return this.commentsService.getComment(param);
   }
 

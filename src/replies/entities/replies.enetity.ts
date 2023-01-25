@@ -8,11 +8,13 @@ import {
   JoinColumn,
   JoinTable,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { UserReply } from './user_replies.entitiy';
 
 @Entity({ name: 'replies' })
 export class Reply extends BaseEntity {
@@ -41,10 +43,15 @@ export class Reply extends BaseEntity {
   @JoinColumn({ name: 'comment_id' })
   comment: Comment | number;
 
+  @OneToMany(() => UserReply, (userReply) => userReply.reply, {
+    cascade: true,
+  })
+  @JoinColumn({ name: 'reply_id' })
+  userReply: UserReply;
+
   @ManyToOne(() => User, (user) => user.id, {
     eager: true,
     onDelete: 'CASCADE',
   })
-  @JoinTable()
-  user: User[];
+  user: User;
 }

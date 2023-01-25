@@ -11,17 +11,7 @@ import { UserCommentRepository } from './comment.repository/userComment.reposito
 import { UserComment } from './entities/user_comment.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Comment,
-      User,
-      Posting,
-      UserComment,
-      CommentRepository,
-      UserRepositoty,
-      UserCommentRepository,
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Comment, User, Posting, UserComment])],
   providers: [
     CommentsService,
     CommentRepository,

@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Comment } from '../entities/comments.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
+import { CommentsResponseDto } from '../DTO/comments.response.dto';
 
 @Injectable()
 export class CommentRepository {
@@ -29,10 +30,11 @@ export class CommentRepository {
       .getExists();
   }
 
-  async create(description, post) {
+  async create(description, post, userId) {
     const comment = this.commentRepository.create({
       description,
       post,
+      user: userId,
     });
 
     await this.commentRepository.save(comment);
@@ -57,7 +59,7 @@ export class CommentRepository {
   async getPostIdByCommentId(post) {
     return await this.commentRepository
       .createQueryBuilder()
-      .leftJoinAndSelect('Comment.commentImage', 'CommentImage')
+      // .leftJoinAndSelect('Comment.commentImage', 'CommentImage')
       .where({ post })
       .getMany();
   }
@@ -75,5 +77,35 @@ export class CommentRepository {
       .delete()
       .where({ id: commentId })
       .execute();
+  }
+
+  async getCommentByPostId(post): Promise<CommentsResponseDto[]> {
+    return this.commentRepository
+      .createQueryBuilder('comment')
+      .select([
+        'comment.id',
+        'comment.description',
+        'comment.createdAt',
+        'cUser.nickname',
+        'reply.id',
+        'reply.description',
+        'rUser.nickname',
+        'reply.createdAt',
+        'commentLike',
+        'commentUser.nickname',
+        'commentUser.id',
+        'replyLike',
+        'replyUser.nickname',
+        'replyUser.id',
+      ])
+      .leftJoin('comment.user', 'cUser')
+      .leftJoin('comment.userComment', 'commentLike')
+      .leftJoin('commentLike.user', 'commentUser')
+      .leftJoin('comment.reply', 'reply')
+      .leftJoin('reply.user', 'rUser')
+      .leftJoin('reply.userReply', 'replyLike')
+      .leftJoin('replyLike.user', 'replyUser')
+      .where({ post })
+      .getMany();
   }
 }
