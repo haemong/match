@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 import { Category } from '../entities/postingCategory.entity';
 
 export class UpdatePostDto {

@@ -1,9 +1,17 @@
 import { AuthCredentialDto } from 'src/auth/dto/auth_credential.dto';
 import { AuthService } from './auth.service';
-import { Controller, Body, Post, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  ValidationPipe,
+  UseInterceptors,
+} from '@nestjs/common';
 import { LoginCredentialDto } from 'src/auth/dto/login.dto';
+import { SuccessInterceptor } from '../interceptors/success.interceptors';
 
 @Controller('auth')
+@UseInterceptors(SuccessInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
