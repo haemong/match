@@ -39,15 +39,16 @@ export class AuthService {
 
   async signIn(
     loginCredentialDto: LoginCredentialDto,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<{ accessToken: string; nickname: string }> {
     const { id, email, password } = loginCredentialDto;
     const user = await this.userRepository.findUserInfo(id, email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload = { id: user.id, email: user.email };
       const accessToken = await this.jwtService.sign(payload);
+      const nickname = user.nickname;
 
-      return { accessToken };
+      return { accessToken, nickname };
     } else {
       throw new UnauthorizedException('login failed');
     }
