@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
 import { Posting } from 'src/post/entities/posting.entity';
 import { PostingLike } from 'src/post/entities/postingLike.entity';
 import { UserComment } from 'src/comments/entities/user_comment.entity';
@@ -28,6 +28,7 @@ export class User extends BaseEntity {
 
   @Column()
   @IsString()
+  @IsEmail()
   @IsNotEmpty()
   @ApiProperty({
     description: 'email',
