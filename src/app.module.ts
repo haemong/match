@@ -7,9 +7,9 @@ import { LoggerMiddleware } from './logger/logger.middleware';
 import { PostModule } from './post/post.module';
 import { CommentsModule } from './comments/comments.module';
 import { RepliesModule } from './replies/replies.module';
-import { ChatsModule } from './chats/chats.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { AppService } from './app.service';
     PostModule,
     CommentsModule,
     RepliesModule,
-    ChatsModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
