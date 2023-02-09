@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import * as AWS from 'aws-sdk';
 import { orderBy } from 'src/common/utils/orderBy';
 import { successBoolean } from 'src/common/utils/successResponse';
+import { UserComment } from 'src/comments/entities/user_comment.entity';
 
 @Injectable()
 export class PostService {

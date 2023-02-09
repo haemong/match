@@ -18,6 +18,7 @@ import { PostingLike } from './postingLike.entity';
 import { postingImage } from './postingImage.entity';
 import { Tag } from './postingTag.entity';
 import { Comment } from 'src/comments/entities/comments.entity';
+import { Chatting } from 'src/chats/entities/chats.entitiy';
 
 @Entity({ schema: 'match', name: 'postings' })
 export class Posting extends BaseEntity {
@@ -93,4 +94,8 @@ export class Posting extends BaseEntity {
 
   @OneToMany(() => Comment, (comment) => comment.post, { cascade: true })
   comment?: Comment[];
+
+  @OneToMany(() => Chatting, (chatting) => chatting.posting, { cascade: true })
+  @JoinColumn()
+  chatting: Chatting[];
 }

@@ -7,6 +7,9 @@ import { LoggerMiddleware } from './logger/logger.middleware';
 import { PostModule } from './post/post.module';
 import { CommentsModule } from './comments/comments.module';
 import { RepliesModule } from './replies/replies.module';
+import { ChatsModule } from './chats/chats.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -18,9 +21,10 @@ import { RepliesModule } from './replies/replies.module';
     PostModule,
     CommentsModule,
     RepliesModule,
+    ChatsModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
