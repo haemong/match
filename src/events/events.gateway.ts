@@ -83,7 +83,6 @@ export class EventsGateway
       .to(roomName)
       .emit('message', { username: socket.id, message });
 
-    this.eventsService.createMessage(message);
     return { username: socket.id, message };
   }
 
