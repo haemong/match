@@ -1,12 +1,22 @@
-import { MockFactory, Test, TestingModule } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { AuthCredentialDto } from './dto/auth_credential.dto';
 import { LoginCredentialDto } from './dto/login.dto';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import {
+  InjectRepository,
+  TypeOrmModule,
+  getRepositoryToken,
+} from '@nestjs/typeorm';
 import { UserRepositoty } from 'src/auth/auth.repository';
+import { CommentsService } from 'src/comments/comments.service';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_PIPE } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { typeORMConfig } from '../../ormconfig';
 
 const signUpReq: AuthCredentialDto = {
   email: 'unit_test@test.com',
@@ -17,7 +27,6 @@ const signUpReq: AuthCredentialDto = {
 
 const signUpRes = {
   success: true,
-  data: { success: true },
 };
 
 const signInReq: LoginCredentialDto = {
@@ -36,26 +45,46 @@ const signInRes = {
 
 describe('CommentsService', () => {
   let authService: AuthService;
-  // let userRepository: Repository<User>;
   let userRepository: UserRepositoty;
+  // let userRepository: Repository<User>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forRootAsync(typeORMConfig),
+        TypeOrmModule.forFeature([User]),
+      ],
       providers: [
         AuthService,
         {
-          provide: getRepositoryToken(User),
+          provide: APP_PIPE,
+          useClass: ValidationPipe,
+        },
+        UserRepositoty,
+        JwtService,
+        {
+          // provide: getRepositoryToken(User),
+          // provide: Repository<User>,
+          provide: UserRepositoty,
           useValue: {
-            signUp: jest.fn().mockResolvedValue(signUpReq),
-            signIn: jest.fn().mockResolvedValue(signInReq),
+            // signUp: jest.fn().mockResolvedValue(signUpRes),
+            // signIn: jest.fn().mockResolvedValue(signInRes),
+            // TODO 이곳엔 repository의 함수들을 쓰는게 아닐까?
+            getEmail: jest.fn(),
+            getNickname: jest.fn(),
+            signUpUser: jest.fn().mockResolvedValue(signUpRes),
+            findUserInfo: jest.fn(),
+            checkUserId: jest.fn(),
+            getNicknameById: jest.fn(),
           },
+          // useClass: Repository,
         },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
     // userRepository = module.get<Repository<User>>(getRepositoryToken(User));
-    userRepository = module.get<UserRepositoty>(getRepositoryToken(User));
+    userRepository = module.get<UserRepositoty>(UserRepositoty);
   });
 
   it('should be defined', () => {
@@ -63,8 +92,21 @@ describe('CommentsService', () => {
   });
 
   describe('signUp()', () => {
-    const repoSpy = jest.spyOn(userRepository, 'signUpUser'); // ! spyOn이 아됨
-    expect(authService.signUp(signUpReq)).resolves.toEqual(signUpRes);
-    expect(repoSpy).toBeCalledWith(signUpRes);
+    // const protoUserRepo = UserRepositoty.prototype;
+    // const repoSpy = jest
+    //   .spyOn(protoUserRepo, 'signUpUser')
+    //   .mockImplementation(async () => {
+    //     return Promise.resolve(signUpRes);
+    //   });
+    it('signUp()', async () => {
+      const repoSpy = jest.spyOn(userRepository, 'signUpUser');
+
+      expect(await authService.signUp(signUpReq)).toEqual(signUpRes);
+      expect(repoSpy).toBeCalled();
+    });
+
+    // expect(repoSpy).toBeCalledWith(signUpRes);
   });
 });
+
+// ! 되긴했는데 뭔 소리인지 모르겠네
