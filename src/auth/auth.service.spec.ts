@@ -1,26 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { AuthCredentialDto } from './dto/auth_credential.dto';
 import { LoginCredentialDto } from './dto/login.dto';
-import {
-  InjectRepository,
-  TypeOrmModule,
-  getRepositoryToken,
-} from '@nestjs/typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserRepositoty } from 'src/auth/auth.repository';
-import { CommentsService } from 'src/comments/comments.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { typeORMConfig } from '../../ormconfig';
+import { Repository } from 'typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { createMock } from '@golevelup/ts-jest';
+import { PassportModule } from '@nestjs/passport';
+import * as bcrypt from 'bcryptjs';
 
 const signUpReq: AuthCredentialDto = {
-  email: 'unit_test@test.com',
-  password: 'unit_test_password_signUp',
+  email: 'unit_test1@test.com',
+  password: 'unit_test_password_signUp12!@',
   username: 'unit_test_username_signUP',
   nickname: 'unit_test_nickname_nickname',
 };
@@ -30,31 +26,42 @@ const signUpRes = {
 };
 
 const signInReq: LoginCredentialDto = {
-  id: Math.floor(Math.random() * 100),
-  email: 'unit_test@test.com',
-  password: 'unit_test_password_signUp',
+  id: 1,
+  email: 'unit_test1@test.com',
+  password: 'unit_test_password_signUp12!@',
 };
 
 const signInRes = {
-  // success: true,
-  // data: {
   accessToken: 'f23fhoifh9fhaosfiadjasdo',
   nickname: 'unit_test_response_signIn_nickname',
-  // },
 };
 
 describe('CommentsService', () => {
   let authService: AuthService;
   let userRepository: UserRepositoty;
-  // let userRepository: Repository<User>;
+  let repoUser: Repository<User>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        TypeOrmModule.forRootAsync(typeORMConfig),
-        TypeOrmModule.forFeature([User]),
+        ConfigModule.forRoot({
+          isGlobal: true,
+        }),
+        PassportModule.register({ defaultStrategy: 'jwt' }),
+        JwtModule.registerAsync({
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => ({
+            secret: configService.get('JWT_SECRET'),
+            signOptions: {
+              expiresIn: configService.get('JWT_EXPIRES_IN'),
+            },
+          }),
+        }),
       ],
       providers: [
+        User,
         AuthService,
         {
           provide: APP_PIPE,
@@ -63,28 +70,29 @@ describe('CommentsService', () => {
         UserRepositoty,
         JwtService,
         {
-          // provide: getRepositoryToken(User),
-          // provide: Repository<User>,
           provide: UserRepositoty,
           useValue: {
-            // signUp: jest.fn().mockResolvedValue(signUpRes),
-            // signIn: jest.fn().mockResolvedValue(signInRes),
             // TODO 이곳엔 repository의 함수들을 쓰는게 아닐까?
             getEmail: jest.fn(),
             getNickname: jest.fn(),
             signUpUser: jest.fn().mockResolvedValue(signUpRes),
-            findUserInfo: jest.fn(),
+            findUserInfo: jest.fn().mockRejectedValue(signInReq),
             checkUserId: jest.fn(),
             getNicknameById: jest.fn(),
           },
-          // useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: createMock<Repository<User>>(), // * 이렇게하면 가능
+          // useValue: Repository<User>, // * 이렇게하면 typeorm의 create도 사용 불가능 ㄷㄷ
         },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    // userRepository = module.get<Repository<User>>(getRepositoryToken(User));
     userRepository = module.get<UserRepositoty>(UserRepositoty);
+    repoUser = module.get<Repository<User>>(getRepositoryToken(User));
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
@@ -92,20 +100,40 @@ describe('CommentsService', () => {
   });
 
   describe('signUp()', () => {
-    // const protoUserRepo = UserRepositoty.prototype;
-    // const repoSpy = jest
-    //   .spyOn(protoUserRepo, 'signUpUser')
-    //   .mockImplementation(async () => {
-    //     return Promise.resolve(signUpRes);
-    //   });
     it('signUp()', async () => {
       const repoSpy = jest.spyOn(userRepository, 'signUpUser');
 
       expect(await authService.signUp(signUpReq)).toEqual(signUpRes);
       expect(repoSpy).toBeCalled();
     });
+  });
 
-    // expect(repoSpy).toBeCalledWith(signUpRes);
+  describe('signIn()', () => {
+    it('signIn()', async () => {
+      const password = signUpReq.password;
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      signUpReq.password = await hashedPassword;
+
+      const singUpUser = repoUser.create(signUpReq);
+      const saveMockRepo = await repoUser.save(singUpUser);
+
+      saveMockRepo.username = signUpReq.username;
+      saveMockRepo.nickname = signUpReq.nickname;
+      saveMockRepo.password = signUpReq.password;
+      saveMockRepo.email = signUpReq.email;
+      saveMockRepo.id = 1;
+
+      expect(
+        bcrypt.compare(signInReq.password, saveMockRepo.password),
+      ).toBeTruthy();
+
+      const payloadMock = { id: saveMockRepo.id, email: saveMockRepo.email };
+      const payload = { id: signInReq.id, email: signInReq.email };
+      console.log(payload);
+      expect(jwtService.sign(payload)).toEqual(jwtService.sign(payloadMock));
+    });
   });
 });
 

@@ -42,7 +42,6 @@ export class CommentsService {
     }
 
     return await this.commentRepository.getCommentByPostId(param);
-    //! get 다시 해야댐 post랑 합쳐서
   }
 
   async updateComment(body: CommentRequesto, user, param: number) {
