@@ -95,7 +95,7 @@ export class User extends BaseEntity {
   userComment: UserComment[];
 
   @OneToMany(() => UserReply, (userReply) => userReply.reply, { cascade: true })
-  userReply: UserReply;
+  userReply: UserReply[];
 
   @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
   comment: Comment[];

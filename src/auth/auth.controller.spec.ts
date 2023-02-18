@@ -48,7 +48,6 @@ describe('AuthController', () => {
             signIn: jest.fn().mockImplementation(() => {
               return Promise.resolve(signInRes);
             }),
-            checkUserId: jest.fn().mockResolvedValue(true || false),
           },
         },
       ],

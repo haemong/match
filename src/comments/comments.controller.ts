@@ -58,9 +58,10 @@ export class CommentsController {
   @Post('like/:id')
   @UseGuards(new JwtAuthGuard())
   async likeComment(
-    @GetUser() user: User,
+    @GetUser() user: { id: number; email: string },
     @Param('id', ParseIntPipe) commentId: string | number,
   ): Promise<unknown> {
+    console.log(user);
     return await this.commentsService.likeComment(user, commentId);
   }
 }
