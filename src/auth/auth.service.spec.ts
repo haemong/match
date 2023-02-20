@@ -131,7 +131,7 @@ describe('CommentsService', () => {
 
       const payloadMock = { id: saveMockRepo.id, email: saveMockRepo.email };
       const payload = { id: signInReq.id, email: signInReq.email };
-      console.log(payload);
+
       expect(jwtService.sign(payload)).toEqual(jwtService.sign(payloadMock));
     });
   });
