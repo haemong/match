@@ -38,7 +38,6 @@ export class CommentsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('update/:commentId')
-  @UseInterceptors(FilesInterceptor('files', 10))
   async updateComment(
     @Body() body: CommentRequesto,
     @GetUser() user: { id: number; email: string },
@@ -61,7 +60,6 @@ export class CommentsController {
     @GetUser() user: { id: number; email: string },
     @Param('id', ParseIntPipe) commentId: string | number,
   ): Promise<unknown> {
-    console.log(user);
     return await this.commentsService.likeComment(user, commentId);
   }
 }
